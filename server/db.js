@@ -1,13 +1,16 @@
 import pg from "pg";
+import dotenv from "dotenv"
+
+dotenv.config();
 
 const { Pool } = pg;
 
 const pool = new Pool({
-    user: 'postgres',
-    password: '040721',
-    host: 'localhost',
-    port: '5432',
-    database: 'budget_tracker_db'
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    host: process.env.DB_HOST,
+    port: process.env.DB_PORT,
+    database: process.env.DB_DATABASE
 });
 
 export default pool;
