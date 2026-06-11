@@ -1,122 +1,58 @@
 import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+import axios from "axios"
+import TransactionForm from "./components/TransactionForm"
+import TransactionList from "./components/TransactionList"
+import Balance from "./components/Balance"
+import './index.css'
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [transactions, setTransactions] = useState([]);
+  const [user_id, setUser_id] = useState(null);
+  const API_URL = 'http://localhost:3000/api';
 
-  return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+  const handleLogin = async () => {
+    try {
+      const response = await axios.post(`${API_URL}/login`, { username: 'user1' });
+      setUser_id(response.date.user_id);
+      fetchTransactions(response.data.user_id);
+    } catch (error) {
+      alert('login failed')
+    }
 
-      <div className="ticks"></div>
+    const fetchTransactions = async (uid) => {
+      const response = await axios.get(`${API_URL}/transactions/${uid}`);
+      setTransactions(response.data);
+    }
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
+    const handleAddTransaction = async (formData) => {
+      const respons = await axios.post(`${API_URL}/transactions`, { user_id, ...formData });
+      setTransactions([respons.data, ...transactions]);
+    }
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+    const handleDelete = async (id) => {
+      await axios.delete(`${API_URL}/transactions/${id}`);
+      setTransactions(transactions.filter(t => t.id !== id));
+    }
+
+    if (!user_id) {
+      return <div className="login-container">
+        <h1>$Budget Tracker$</h1>
+        <button onClick={handleLogin} className='login-btn' > Login as Demo </button>
+      </div>
+    }
+
+    return (
+      <div className="container">
+        <header>
+          <h1>💰 Budget Tracker</h1>
+          <button onClick={() => setUser_id(null)}>Logout</button>
+        </header>
+        <Balance transactions={transactions} />
+        <TransactionForm onAdd={handleAddTransaction} />
+        <TransactionList transactions={transactions} onDelete={handleDelete} />
+      </div>
+    )
+  }
 }
 
 export default App
