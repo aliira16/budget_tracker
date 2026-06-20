@@ -1,0 +1,96 @@
+how the work is start 
+1- start my init and set the structur of the folder first 
+    a. create your project folder and cd in it 
+    b. npm init -y in the project folder
+    c. create the server folder, cd in it and npm init -y in it and npm i express pg cors dotenv
+    d. touch routes.js server.js db.js and .env
+    e. back to the project folder cd .. and run npm create vite@latest client -- --template react to install the react
+    f. cd in the client and install axios for the API
+    g. go back to the project folder package.json and change the type to module and change the script from test to 
+        {
+            "dev" : "concurrently \"npm run server\" \"npm run client\"",
+            "server": "cd server && node watch server.js",
+            "client": "cd client && node run dev",
+        }
+    by this way we run the server and the frontend react both in same terminal with same line which is npm run dev
+    then should npm i concurrently --save-dev this who help up to make this action 
+2- build the database in postgreseSQL : in this web app project it money manager so need 2 table user and transaction 
+    a. create db : open pgAdmin go to database right click create and name it 
+    b. click in it and hit Alt Shift Q to open the query tool 
+    c. create the Tables : 
+        CREATE TABLE table_name ( 
+            id SERIAL NOT NULL,
+            user_name VARCHAR (100) UNIQUE NOT NULL,
+            password VARCHAR (255) NOT NULL,
+            created_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            ) this exmples of creating the useres table 
+        CREATE TABLE transactions (
+            id SERIAL PRIMARY KEY,
+            user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE, => REFERENCES is way to link 2 table here said that this id is the same as the id in the users table
+            description VARCHAR(255) NOT NULL,
+            amount NUMERIC(10, 2) NOT NULL, => the NUMERIC to specify how many caracter can write in our case 10,2 so for example can make 15000.02 or 950.59 its good for money 
+            type VARCHAR(10) CHECK (type IN ('income', 'expense')), => the check force you to use only the once you set not other once in our case must be income or expense if you try type = gift it wouldn't accept it 
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP 
+            );
+3. backend database connection : after creating the schema in postgreSQL now need to link it with the backend by the router.js in the server folder 
+    a. import express from "express" and the import pg from "pg"
+    b. const router = express.Router();
+    c. create the router here example for 5 router link 
+        
+        //login (get user_id)
+
+            router.post('auth/login', async (req, res) => {
+                try {
+                    const { username } = req.body;
+                    const result = await pool.query('SELECT id FROM users WHERE username = $1', [username]);
+                    if (result.rows.length === 0) {
+                        return res.status(401).json({ error: "user not found" })
+                    }
+                    res.json({ user_id: result.rows[0].id });
+                } catch (error) {
+                    res.status(500).json({ error: "SERVER login err" })
+                }
+            })
+
+            //GET all transactions 
+
+            router.get('/transactions/:user_id', async (req, res) => {
+                try {
+                    const { user_id } = req.params;
+                    const result = await pool.query('SELECT * FROM transactions WHERE user_id = $1 ORDER BY created_at DESC', [user_id]);
+                    res.json(result.rows);
+                } catch (error) {
+                    res.status(500).json({ error: "SERVER GET transactions err" })
+                }
+            })
+
+            //POST new transactions
+
+            router.post('/transactions', async (req, res) => {
+                try {
+                    const { user_id, description, amount, type } = req.body;
+                    if (!description || !amount || !type) {
+                        return res.status(400).json({ error: "Missing fields" });
+                    }
+                    const result = pool.query('INSERT INTO transactions (user_id , description, amount, type) VALUES ($1, $2, $3, $4) RETURNING *', [user_id, description, parseFloat(amount), type]);
+                    res.status(201).json((await result).rows[0]);
+                } catch (error) {
+                    res.status(500).json({ error: "SERVER POST transactions err" });
+                }
+            })
+
+            //DELETE transactions
+
+            router.delete('/transactions/:id', async (req, res) => {
+                try {
+                    const { id } = req.params;
+                    await pool.query('DELETE FROM transactions WHERE id = $1', [id])
+                    res.status(201).json({ message: 'DELETED' })
+                } catch (error) {
+                    res.status(500).json({ error: "SERVER DELETE transactions err" });
+                }
+            })
+
+
+            // export the router to use it in the server folder
+            export default router; 

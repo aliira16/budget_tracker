@@ -13,7 +13,7 @@ export default function TransactionForm({ onAdd }) {
         onAdd({ description, amount, type }); // call the onAdd function passed from parent component with the form data
         setDescription('');
         setAmount('');
-        setType('');
+        setType('expense'); // reset the form fields after submission
     };
     return (
         <form onSubmit={handelSubmit} className='form'>
