@@ -17,7 +17,7 @@ export default function TransactionForm({ onAdd }) {
     };
     return (
         <form onSubmit={handelSubmit} className='form'>
-            <div className="from-group">
+            <div className="form-group">
                 <label>Description</label>
                 <input value={description} onChange={(e) => setDescription(e.target.value)} />
             </div>

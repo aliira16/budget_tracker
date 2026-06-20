@@ -10,7 +10,7 @@ const PORT = process.env.PORT
 
 app.use(cors());
 app.use(e.json());
-app.use('./api', routes);
+app.use('/api', routes);
 
 app.get('/', (req,res)=>{
     res.json({message: "Budget Tracker API running"});

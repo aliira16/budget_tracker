@@ -12,7 +12,7 @@ function App() {
 
   const handleLogin = async () => {
     try {
-      const response = await axios.post(`${API_URL}/login`, { username: 'user1' });
+      const response = await axios.post(`${API_URL}/login`, { username: 'ali' });
       setUser_id(response.data.user_id);
       fetchTransactions(response.data.user_id);
     } catch (error) {

@@ -18,7 +18,7 @@ export default function TransactionList({ transactions, onDelete }) {
                                 {t.type === 'income' ? '+' : '-'} ${parseFloat(t.amount).toFixed(2)}
                             </span>
                         </div>
-                        <button onClick={onDelete(t.id)}>DELETE</button>
+                        <button onClick={() => onDelete(t.id)}>DELETE</button>
                     </div>)))}
                 </div>
             )}
